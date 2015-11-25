@@ -2,6 +2,7 @@
  * Created by tylero on 11/24/15.
  */
 var sqlite3 = require('sqlite3').verbose();
+var Q = require('q');
 
 /**
  * This is an adapter for SQLite DB.
@@ -10,6 +11,7 @@ var sqlite3 = require('sqlite3').verbose();
  */
 function SQLiteAdapter(DB) {
     this.db = new sqlite3.Database(DB);
+    this.all = Q.nbind(this.db.all, this.db);
 }
 
 (function(){
@@ -17,18 +19,19 @@ function SQLiteAdapter(DB) {
     this.constructor = SQLiteAdapter;
 
     /**
-     * Return an array contains the all hosts
+     * Query for all hosts
+     * @return a Q promise
      */
     this.getHosts = function() {
-
+        return this.all('select distinct hostName from VMStatus');
     };
 
     /**
-     * Return an array contains the all VMs hosted on the host
+     * Query for all VMs hosted on the `host`
      * @param {!string} host: The host to query about
      */
     this.getVMs = function(host) {
-
+        return this.all('select distinct name from VMStatus');
     };
 
     /**
@@ -37,6 +40,13 @@ function SQLiteAdapter(DB) {
      */
     this.getLatestVMsStatus = function(VMs) {
 
+    };
+
+    /**
+     * Close the database
+     */
+    this.closeDB = function() {
+        this.db.close();
     };
 
 }).call(SQLiteAdapter.prototype);
