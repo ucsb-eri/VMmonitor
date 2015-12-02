@@ -23,7 +23,7 @@ function SQLiteAdapter(DB) {
      * @return a Q promise
      */
     this.getHosts = function() {
-        return this.all('select distinct hostName from VMStatus');
+        return this.all('SELECT DISTINCT hostName FROM VMStatus');
     };
 
     /**
@@ -31,22 +31,36 @@ function SQLiteAdapter(DB) {
      * @param {!string} host: The host to query about
      */
     this.getVMs = function(host) {
-        return this.all('select distinct name from VMStatus');
+        return this.all('SELECT DISTINCT name FROM VMStatus').then(function(VMs) {
+            var results = [];
+            for (var i = 0; i < VMs.length; i++) {
+                results.push(VMs[i].name);
+            }
+            return results;
+        });
     };
 
     /**
-     * Return an array of the latest status for each VM in VMs
-     * @param {!Array<string>} VMs: VMs to query about
+     * Return an array of the latest status for each VM in the table
      */
-    this.getLatestVMsStatus = function(VMs) {
-
+    this.getLatestVMsStatus = function() {
+        return this.all('SELECT * from VMStatus t1 INNER JOIN ' +
+            '(SELECT name, max(generateTime) as generateTime FROM VMStatus GROUP BY name) t2 ' +
+            'ON t1.name = t2.name AND t1.generateTime = t2.generateTime');
     };
 
     /**
      * Close the database
      */
     this.closeDB = function() {
-        this.db.close();
+        var deffered = Q.defer();
+        this.db.close(function(err) {
+            if (err) {
+                return deffered.reject(false);
+            }
+            deffered.resolve(true);
+        });
+        return deffered.promise;
     };
 
 }).call(SQLiteAdapter.prototype);

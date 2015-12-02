@@ -1895,9 +1895,9 @@ if (typeof jQuery === 'undefined') {
     this.activeTarget   = null
     this.scrollHeight   = 0
 
-    this.$scrollElement.on('scroll.bs.scrollspy', $.proxy(this.process, this))
+    this.$scrollElement.on('scroll.bs.scrollspy', $.proxy(this.processVMStatus, this))
     this.refresh()
-    this.process()
+    this.processVMStatus()
   }
 
   ScrollSpy.VERSION  = '3.3.5'
@@ -1943,7 +1943,7 @@ if (typeof jQuery === 'undefined') {
       })
   }
 
-  ScrollSpy.prototype.process = function () {
+  ScrollSpy.prototype.processVMStatus = function () {
     var scrollTop    = this.$scrollElement.scrollTop() + this.options.offset
     var scrollHeight = this.getScrollHeight()
     var maxScroll    = this.options.offset + scrollHeight - this.$scrollElement.height()
