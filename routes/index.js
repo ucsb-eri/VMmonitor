@@ -5,7 +5,7 @@ var controller = require('../controllers/controller');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    controller.tableElements()
+    controller.generateTableElements()
         .done(function(elements) {
             res.render('index', {status: elements});
         });

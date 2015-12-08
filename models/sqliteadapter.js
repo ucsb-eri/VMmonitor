@@ -31,7 +31,8 @@ function SQLiteAdapter(DB) {
      * @param {!string} host: The host to query about
      */
     this.getVMs = function(host) {
-        return this.all('SELECT DISTINCT name FROM VMStatus').then(function(VMs) {
+        return this.all('SELECT DISTINCT name FROM VMStatus ' +
+            'WHERE hostName = ?', host).then(function(VMs) {
             var results = [];
             for (var i = 0; i < VMs.length; i++) {
                 results.push(VMs[i].name);

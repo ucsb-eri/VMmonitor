@@ -9,14 +9,14 @@ var factory = new LocalsFactory();
 
 
 module.exports = {
-    tableElements: function() {
+    generateTableElements: function() {
         return adapter.getLatestVMsStatus()
             .then(function(VMStatus) {
                 return factory.processVMStatus(VMStatus);
             });
     },
 
-    piChartElements: function() {
+    generatePiChartElements: function() {
 
     }
 

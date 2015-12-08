@@ -12,9 +12,10 @@ function LocalsFactory() {
 
     this.processVMStatus = function(VMStatus) {
         for (var i = 0; i < VMStatus.length; i++) {
-            var status = VMStatus[i]
+            var status = VMStatus[i];
             var fromTime = status.generateTime;
             status.generateTime = this.toHumanReadableTime(fromTime);
+            status.maxMem /= 1024*1024;
             this.addColor(status);
         }
         return VMStatus;

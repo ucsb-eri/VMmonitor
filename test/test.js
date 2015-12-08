@@ -35,6 +35,11 @@ describe('SQLiteAdapter', function() {
         it('should return VMs array with length 10', function() {
             return expect(adapter.getVMs('legba.eri.ucsb.edu')).to.eventually.have.length(10);
         });
+
+        it('should return VMs array with length 0 for invalid host', function() {
+            return expect(adapter.getVMs('legba')).to.eventually.have.length(0);
+        });
+
         it('should return VMs array with "tlapa"', function() {
             return expect(adapter.getVMs('legba.eri.ucsb.edu')).to.eventually.include('tlapa');
         });
