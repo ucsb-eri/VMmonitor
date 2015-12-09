@@ -1,7 +1,7 @@
 /**
- * Created by tylero on 11/24/15.
+ * This a factory to make jade-render ready js objects.
+ * @constructor
  */
-
 function LocalsFactory() {
 
 }
@@ -10,6 +10,11 @@ function LocalsFactory() {
 
     this.constructor = LocalsFactory;
 
+    /**
+     * A function to process VMStatus object
+     * @param VMStatus: An array of VMStatus objects
+     * @returns {*}: An array of jade-render ready js objects
+     */
     this.processVMStatus = function(VMStatus) {
         for (var i = 0; i < VMStatus.length; i++) {
             var status = VMStatus[i];
@@ -25,6 +30,10 @@ function LocalsFactory() {
         return new Date(fromTime*1000).toLocaleString();
     };
 
+    /**
+     * Adds color to a status object based on the state of the object
+     * @param status: Reference to the status object
+     */
     this.addColor = function(status) {
         switch (status.state) {
             case 'SHUTOFF':
@@ -44,37 +53,3 @@ function LocalsFactory() {
 }).call(LocalsFactory.prototype);
 
 module.exports = LocalsFactory;
-
-//[ { generateTime: 1447877294,R
-//    name: 'xarray',
-//    OSType: 'hvm',
-//    path: '/vm/xarray.img',
-//    FSType: 'ext2/ext3',
-//    cpuTime: 0,
-//    maxMem: 2097152,
-//    memoryUsed: 0,
-//    numOfCpu: 1,
-//    state: 'SHUTOFF',
-//    hostName: 'legba.eri.ucsb.edu' },
-//    { generateTime: 1447877294,
-//        name: 'blownaway',
-//        OSType: 'hvm',
-//        path: '/vm/blownaway.img',
-//        FSType: 'ext2/ext3',
-//        cpuTime: 1435120000000,
-//        maxMem: 2097152,
-//        memoryUsed: 2097152,
-//        numOfCpu: 1,
-//        state: 'RUNNING',
-//        hostName: 'legba.eri.ucsb.edu' },
-//    { generateTime: 1447877294,
-//        name: 'lic-matlab',
-//        OSType: 'hvm',
-//        path: '/net/ojo/raid/vms/lic-matlab/lic-matlab.img',
-//        FSType: 'nfs',
-//        cpuTime: 5588080000000,
-//        maxMem: 2097152,
-//        memoryUsed: 2097152,
-//        numOfCpu: 1,
-//        state: 'RUNNING',
-//        hostName: 'legba.eri.ucsb.edu' }]

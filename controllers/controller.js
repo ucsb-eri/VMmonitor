@@ -1,6 +1,7 @@
 /**
- * Created by tylero on 11/30/15.
+ * This controller fetches data from the database, and prepare the data to display
  */
+
 var SQLiteAdapter = require('../models/sqliteadapter');
 var LocalsFactory = require('../models/localsfactory');
 
@@ -9,6 +10,11 @@ var factory = new LocalsFactory();
 
 
 module.exports = {
+
+    /**
+     * Generates an array of elements to show in a table
+     * @returns {*}
+     */
     generateTableElements: function() {
         return adapter.getLatestVMsStatus()
             .then(function(VMStatus) {
@@ -16,6 +22,10 @@ module.exports = {
             });
     },
 
+    /**
+     * Generates an array of elements to show in a pie chart
+     * @returns {*}
+     */
     generatePiChartElements: function() {
 
     }

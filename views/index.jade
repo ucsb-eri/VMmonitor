@@ -29,6 +29,7 @@ block content
                     tr
                         th Time
                         th VM
+                        th Host
                         th State
                         th Path
                         th FS Type
@@ -41,6 +42,7 @@ block content
                         tr
                             td= local.generateTime
                             td= local.name
+                            td= local.hostName
                             td(style='color:' + local.color)= local.state
                             td= local.path
                             td= local.FSType
