@@ -28,6 +28,18 @@ module.exports = {
      */
     generatePiChartElements: function() {
 
+    },
+
+    /**
+     * Generates sqlite3 db from HTTP-POST request from virtu.py
+     */
+    generateDB: function(data) {
+        adapter.createTables();
+        adapter.storeData(data);
+        adapter.insertHostData();
+        adapter.insertGuestData();
+        adapter.insertLatestData();
+        adapter.closeDB();
     }
 
 };
