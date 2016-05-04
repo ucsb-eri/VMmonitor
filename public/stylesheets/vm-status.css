@@ -1,0 +1,138 @@
+body {
+    background-color: #ccc;
+    font-size: 100%;
+    font-weight: bold;
+    font-family: helvetica,arial,sans-serif;
+}
+#container {
+    border-radius: 10px;
+    background-color: #bbb;
+    /* width: 960px;  */
+    /* max-width: 960px; */
+    min-width: 700px;
+    padding: 5px;
+    margin: 5px;
+}
+.sponsor-container {
+    border: solid #444 4px;
+    border-radius: 10px;
+    background-color: #bbb;
+    /* width: 960px;  */
+    /* max-width: 960px; */
+    /* min-width: 700px; */
+    padding: 5px;
+    margin: 5px;
+}
+.container {
+    border: solid #999 4px;
+    border-radius: 10px;
+    background-color: #ddd;
+    /* width: 960px;  */
+    /* max-width: 960px; */
+    /* min-width: 700px; */
+    padding: 5px;
+    margin: 5px;
+}
+.running {
+    background-color: #8f8;
+}
+.not-running {
+    background-color: #4cf;
+}
+.runstate-old {
+    background-color: #aaa;
+}
+.kvm {
+    background-color: #88f;
+}
+.xen {
+    background-color: #ff8;
+}
+.sponsor {
+    padding-top: 0px;
+    font-size: 1.5em;
+}
+.cpu-specs {
+    color: #600;
+}
+.cpu-type {
+    color: #060;
+}
+
+h2 {
+    margin: 5px;
+}
+h3 {
+    color: blue;
+    margin: 0px;
+    margin-left: 10px;
+}
+.storage-container {
+    background-color: #aaa;
+    border: solid 2px #444;
+}
+.vmhost {
+    vertical-align: top;
+    font-size: 120%;
+    width: 180px;
+    text-align: center;
+    padding: 2px;
+    margin: 5px;
+    border-radius: 10px;
+    border: solid #444 3px;
+    display: inline-block;
+    /*
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+    */
+}
+.vmhost-label {
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+}
+.vmguest {
+    margin: 2px;
+    text-align: center;
+    font-size: 75%;
+    padding: 4px;
+    border: solid #444 2px;
+    border-radius: 10px;
+}
+.vmguest:hover {
+    /*
+    background-color: red;
+    */
+}
+.legend {
+    width: 200px;
+    border: solid black 1px;
+    padding: 10px;
+    border-radius: 10px;
+}
+p {
+    font-weight: normal;
+}
+.legend-disclaimer {
+    color: #444;
+    font-size: 75%;
+}
+.vmhost-details {
+    font-size: 60%;
+    font-weight: normal;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+.vmguest-details {
+    font-size: 80%;
+    font-weight: normal;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+.vmguest-tooltip-info-label {
+    font-size: 90%;
+    color: #22a;
+}

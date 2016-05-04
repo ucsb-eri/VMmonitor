@@ -1,20 +1,32 @@
 doctype html
 html(lang='en')
     head
+        meta(http-equiv='refresh', content='5')
         meta(charset='utf-8')
         meta(http-equiv='X-UA-Compatible', content='IE=edge')
         meta(name='viewport', content='width=device-width, initial-scale=1')
         // The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags
         meta(name='description', content='')
-        meta(name='author', content='Tyler O.')
+        meta(name='author', content='Tyler O. and Kenneth C.')
         title= title
         // Bootstrap core CSS
         link(href='/stylesheets/bootstrap.min.css', rel='stylesheet')
         // Custom styles for this template
         link(href='/stylesheets/dashboard.css', rel='stylesheet')
+        //vm-status css
+        link(href='/stylesheets/vm-status.css', rel='stylesheet')
+        link(href='/stylesheets/common.css', rel='stylesheet')
+        link(href='/stylesheets/vm-status-tooltip.css', rel='stylesheet')
+
+        script(type='text/javascript').
+            function show (elem) {  
+                elem.style.display="block";
+            }
+            function hide (elem) { 
+                elem.style.display=""; 
+            }
     body
-        include navbar
-        .container-fluid
-            .row
-                include sidebar
-                block content
+        h2 VM Status - 
+            span.smaller
+                a(href='#') Up a Directory
+        block content

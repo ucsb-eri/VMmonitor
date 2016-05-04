@@ -1,14 +1,31 @@
 var express = require('express');
 var router = express.Router();
 
-var controller = require('../controllers/displaycontroller');
+var display = require('../controllers/displaycontroller');
+var input = require('../controllers/datainputcontroller');
 
-/* GET home page. */
+// indexLocals is the object that we pass to the function rendering
+// the page
+var indexLocals = {
+	title: VM display,
+	date: 'yyyy-mm-dd', //TODO
+	status: elements, 
+};
+
+// display the page
 router.get('/', function(req, res, next) {
-    controller.generateTableElements()
+    display.generateTableElements()
         .done(function(elements) {
-            res.render('index', {status: elements});
+            res.render('index', indexLocals);
         });
 });
+
+// input data
+router.post('/', function(req, res) {
+	res.send();
+	// console.log('received data');
+	input.generateDB(req.body);
+});
+
 
 module.exports = router;
