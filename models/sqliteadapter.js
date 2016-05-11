@@ -12,39 +12,51 @@ var Q = require('q');
 function SQLiteAdapter(DB) {
     this.db = new sqlite3.Database(DB);
     this.all = Q.nbind(this.db.all, this.db);
-    this.hostData = [];
-    this.guestData = [];
 }
 
 (function(){
 
     this.constructor = SQLiteAdapter;
 
+    //================================================================================
+    // data manipulation and input
+    //================================================================================
+
     this.createTables = function() {
         var host_schema = 'host TEXT unique, ds TEXT, cpu INTEGER, fqdn TEXT, ctime INTEGER, mem INTEGER';
-        var g_schema='host TEXT, ds TEXT, ctime INTEGER, osType TEXT, fsType TEXT, path TEXT, cpuTime INTEGER, memMax INTEGER default 0, memUsed INTEGER default 0, cpuMax INTEGER default 1, cpuUsed INTEGER default 1, state TEXT';
-        var latest_schema='guest TEXT unique, '+g_schema;
-        var guest_schema='guest TEXT, '+g_schema;
+        var g_schema='guest TEXT, host TEXT, ds TEXT, ctime INTEGER, osType TEXT, fsType TEXT, path TEXT, cpuTime INTEGER, memMax INTEGER default 0, memUsed INTEGER default 0, cpuMax INTEGER default 1, cpuUsed INTEGER default 1, state TEXT';
+        var latest_schema=g_schema+', UNIQUE(guest, host) ON CONFLICT REPLACE';
+        var guest_schema=g_schema;
 
         this.db.run('CREATE TABLE IF NOT EXISTS hosts (' + host_schema + ')');
         this.db.run('CREATE TABLE IF NOT EXISTS guests (' + guest_schema + ')');
         this.db.run('CREATE TABLE IF NOT EXISTS latest (' + latest_schema + ')');
     };
 
-    this.saveData = function(json) {
-        var hostdata = json['hostData'];
-        //convert unixtime to yyyy-mm-dd
-        var dt = new Date(hostdata['generateTime']*1000);
-        var datestamp = [dt.getUTCFullYear(), dt.getUTCMonth()+1, dt.getUTCDate()].join('-');
-        //save hostdata
-        this.hostData = [
-            hostdata['host'],
-            datestamp,
-            hostdata['cpuCount'],
-            hostdata['fqdn'],
-            hostdata['generateTime'],
-            hostdata['memoryBytes'],
-        ];
+    // storeData
+    // processes json data, and stores it into db
+    this.storeData = function(json) {
+        // store host data
+        // use try block because not all requests contain host data
+        try {
+            var hostdata = json['hostData'];
+            // convert unixtime to yyyy-mm-dd
+            var dt = new Date(hostdata['generateTime']*1000);
+            var datestamp = [dt.getUTCFullYear(), dt.getUTCMonth()+1, dt.getUTCDate()].join('-');
+            // save hostdata
+            this.db.run('INSERT OR REPLACE INTO hosts VALUES (?, ?, ?, ?, ?, ?)', 
+                hostdata['host'],
+                datestamp,
+                hostdata['cpuCount'],
+                hostdata['fqdn'],
+                hostdata['generateTime'],
+                hostdata['memoryBytes']
+            );
+        }
+        catch (e) {
+            console.error(e);
+        }
+        
 
         //save guest and latest data
         var guests = [];
@@ -56,8 +68,8 @@ function SQLiteAdapter(DB) {
         }
         
         for(i=0; i<guests.length; i++) {
-            var VM = guests[i]  
-            this.guestData.push([
+            var VM = guests[i];
+            var res = [
                 VM['name'],                 //guest vm name
                 hostdata['host'],           //host name
                 datestamp,                  //datestamp
@@ -70,73 +82,14 @@ function SQLiteAdapter(DB) {
                 VM['memoryUsed'],           //memUsed
                 VM['numOfCpu'],             //cpuMax
                 VM['numOfCpu'],             //cpuUsed
-                VM['state'],                //state
-            ]);
+                VM['state']                 //state
+            ];
+            this.db.run('INSERT INTO guests VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', res);
+            this.db.run('INSERT OR REPLACE INTO latest VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', res);
         }
     };
 
-    this.insertHostData = function() {
-        var hostdata = json['hostData'];
-        //convert unixtime to yyyy-mm-dd
-        var dt = new Date(hostdata['generateTime']*1000);
-        var datestamp = [dt.getUTCFullYear(), dt.getUTCMonth()+1, dt.getUTCDate()].join('-');
-        var data = [
-            hostdata['host'],
-            datestamp,
-            hostdata['cpuCount'],
-            hostdata['fqdn'],
-            hostdata['generateTime'],
-            hostdata['memoryBytes'],
-        ];
-        this.db.run('INSERT OR IGNORE INTO hosts VALUES (?, ?, ?, ?, ?, ?)', data);
-    };
-
-    this.insertGuestData = function() {
-        for(var i=0; i<this.guestData.length; i++) {
-            this.db.run('INSERT INTO guests VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', this.guestData[i]);
-        }
-    };
-
-    this.insertLatestData = function() {
-        for(var i=0; i<this.guestData.length; i++) {
-            db.run('INSERT OR REPLACE INTO latest VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', this.guestData[i]);
-        }
-    };
-    /**
-     * Query for all hosts
-     * @return a Q promise
-     */
-    this.getHosts = function() {
-        return this.all('SELECT DISTINCT hostName FROM VMStatus');
-    };
-
-    /**
-     * Query for all VMs hosted on the `host`
-     * @param {!string} host: The host to query about
-     */
-    this.getVMs = function(host) {
-        return this.all('SELECT DISTINCT name FROM VMStatus ' +
-            'WHERE hostName = ?', host).then(function(VMs) {
-            var results = [];
-            for (var i = 0; i < VMs.length; i++) {
-                results.push(VMs[i].name);
-            }
-            return results;
-        });
-    };
-
-    /**
-     * Return an array of the latest status for each VM in the table
-     */
-    this.getLatestVMsStatus = function() {
-        return this.all('SELECT * from VMStatus t1 INNER JOIN ' +
-            '(SELECT name, max(generateTime) as generateTime FROM VMStatus GROUP BY name) t2 ' +
-            'ON t1.name = t2.name AND t1.generateTime = t2.generateTime');
-    };
-
-    /**
-     * Close the database
-     */
+    //might not even have to ever close the db
     this.closeDB = function() {
         var deferred = Q.defer();
         this.db.close(function(err) {
@@ -146,6 +99,90 @@ function SQLiteAdapter(DB) {
             deferred.resolve(true);
         });
         return deferred.promise;
+    };
+    
+    //================================================================================
+    // data display
+    //================================================================================
+
+    // this.getGuests = function(host) {
+    //     return this.all('SELECT * FROM guests WHERE host = ? ORDER BY guest', host);
+    // };
+
+    // this.getGuestData = function(guest, host) {
+    //     return this.all('SELECT * FROM guests WHERE guest=? AND host=?', guest, host);
+    // };
+
+    // this.getHosts = function() {
+    //     return this.all('SELECT * FROM hosts ORDER BY host');
+    // };
+
+    // this.getLatest = function(host) {
+    //     return this.all('SELECT * FROM latest WHERE host = ?', host);
+    // };
+
+    this.getData = function() {
+        // data
+        /*{
+            'hosts[i]': {
+                'hostdata' : 
+                        // host        ds          cpu         fqdn                ctime       mem         
+                        // ----------  ----------  ----------  ------------------  ----------  ------------
+                        // zippy       2016-3-10   16          zippy.chg.ucsb.edu  1457605528  169212813312
+
+                'guestdata' : ['guesta', 'guestb', etc. where guesta etc are js objects
+            },
+            'legba': {
+                'hostdata' : {  cpu: 12 / 32  2x8*2@1.4GHz Intel        // hostdata: obj
+                                mem: 27 / 62 Gb
+                                rack: nhdc-r2.28.1u
+                                acqdate: 2015-09-18
+                                OS: CentOS-7.2.1511},
+                'guestdata' : [{name: bouytalk, Sponsor: davey          // guestdata: array of objs
+                                IP: 128.111.100.135
+                                CPU: 1 / 1
+                                Mem: 2 / 2 Gb
+                                OS: CentOS-6.7
+                                Services: glider comms
+                                Path: /vm/bouytalk.img}]
+            }
+        }*/
+        // this.db.serialize(function() {
+            var data = {};
+
+            // get list of all hosts, desc because array pop and push later
+            var hosts = [];
+            this.all('SELECT host FROM hosts ORDER BY host DESC', function(err, rows) {
+                // this.db.serialize(function() {
+                    // rows:  [ { host: 'z' }, { host: 'a' } ]
+                    // transform into hosts: ['a','z']
+                    var len = rows.length;
+                    for (var i=0; i<len; i++) {
+                        hosts.push(rows.pop().host);
+                    }
+                    // hosts = ['a','b', ... 'z']
+
+                    // for each host, store hostdata and guestdata
+                    for (var i=0; i<len; i++) {
+                        data[hosts[i]] = {};
+                        // var hostobj = {}; 
+                        this.all('SELECT ds, cpu, fqdn, ctime, mem FROM hosts WHERE host=?', hosts[i], function(err, rows) {
+                            // rows: [ { ds: '...', cpu: '', fqdn: '', ...}, { host: 'zippy', ... etc.}]
+                            data[hosts[i]]['hostdata'] = rows[0];
+                            console.log('stored ', hosts[i], ' \'s hostdata');
+
+                            //TODO might add union, select sum for cpuMax and cpuUsed based on state (shutoff or running)
+
+                        }).all('SELECT guest, ds, ctime, osType, path, cpuTime, memUsed, memMax, cpuUsed, cpuMax, state FROM latest WHERE host=? ORDER BY guest', hosts[i], function(err, rows) {
+                            // rows: [ { guest: 'chg-ewx', ... etc}, { guest: 'fez', ... }, { guest: '...', ... etc. }]
+                            data[hosts[i]]['guestdata'] = rows;
+                            console.log('stored ', hosts[i], '\'s guestdata');
+                        });
+                    }   //end for
+                    return data;
+                // });     // end db.serialize
+            });         // end this.all
+        // });             // end db.serialize
     };
 
 }).call(SQLiteAdapter.prototype);

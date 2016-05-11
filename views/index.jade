@@ -1,16 +1,26 @@
 extends layout
 
 block content
-    <div class="sponsor-container">
-        <h3 class="sponsor"> eri span.smaller sponsored VM hosts - generated on: #{date}</h3>
-            div class=container
+- var id = 0;
+    .container
+        each vm in indexLocals
+            .vmhost.kvm
+                .vmhost-label= vm.hostname
+                .vmhost-details
+                    strong cpu: #{vm.cpuUsed} / #{vm.cpuMax}
+                    br/
+                    strong mem: #{vm.memUsed} / #{vm.memMax}
+                .vmguest.running(onmouseover='show(id)')
+
+
             //begin sponsor vmhosts container
-                <div class="vmhost kvm"><div class="vmhost-label">dumpty</div>
-                <div class="vmhost-details"><strong>cpu: </strong>6 / 8&nbsp;&nbsp;<span class="cpu-specs">2x4@2.0GHz </span><span class="cpu-type">AMD</span><br><strong>mem: </strong>9 / 15 Gb<br><strong>rack:</strong> eh-1.24.3u<br><strong>acqdate:</strong> 2008-13<br><strong>OS:</strong> CentOS-6.7       </div>      <div id="6230" class="vmguest running davey" onmouseover="show(tt_6230)" onmouseout="hide(tt_6230)">aquarad <span class="vmguest-details">(2 cpu, 4 Gb)</span><div id="tt_6230" class="tooltip"><hr><span class="vmguest-tooltip-info-label">Sponsor:</span> <span class="vmguest-details">davey</span><br><span class="vmguest-tooltip-info-label">IP:</span> <span class="vmguest-details">128.111.101.85</span><br><span class="vmguest-tooltip-info-label">MemoryUsed:</span> <span class="vmguest-details">4 Gb</span><br><span class="vmguest-tooltip-info-label">OS:</span> <span class="vmguest-details">-</span><br><span class="vmguest-tooltip-info-label">Services:</span> <span class="vmguest-details"></span><br></div><!-- end tooltip div -->
-                </div><!-- end vmguest div -->
-                <div id="6229" class="vmguest running sysadm" onmouseover="show(tt_6229)" onmouseout="hide(tt_6229)">daft <span class="vmguest-details">(4 cpu, 5 Gb)</span><div id="tt_6229" class="tooltip"><hr><span class="vmguest-tooltip-info-label">Sponsor:</span> <span class="vmguest-details">sysadm</span><br><span class="vmguest-tooltip-info-label">IP:</span> <span class="vmguest-details">128.111.101.35</span><br><span class="vmguest-tooltip-info-label">MemoryUsed:</span> <span class="vmguest-details">5 Gb</span><br><span class="vmguest-tooltip-info-label">OS:</span> <span class="vmguest-details">-</span><br><span class="vmguest-tooltip-info-label">Services:</span> <span class="vmguest-details"></span><br></div><!-- end tooltip div -->
-                </div><!-- end vmguest div -->
-                </div>
+    
+
+     <div id="6682" class="vmguest running davey" onmouseover="show(tt_6682)" onmouseout="hide(tt_6682)">bouytalk <span class="vmguest-details">(1 cpu, 2 Gb)</span><div id="tt_6682" class="tooltip"><hr><span class="vmguest-tooltip-info-label">Sponsor:</span> <span class="vmguest-details">davey</span><br><span class="vmguest-tooltip-info-label">IP:</span> <span class="vmguest-details">128.111.100.135</span><br><span class="vmguest-tooltip-info-label">CPU:</span> <span class="vmguest-details">1 / 1</span><br><span class="vmguest-tooltip-info-label">Mem:</span> <span class="vmguest-details">2 / 2 Gb</span><br><span class="vmguest-tooltip-info-label">OS:</span> <span class="vmguest-details">CentOS-6.7</span><br><span class="vmguest-tooltip-info-label">Services:</span> <span class="vmguest-details">glider comms</span><br><span class="vmguest-tooltip-info-label">Path:</span> <span class="vmguest-details">/vm/bouytalk.img</span><br></div><!-- end tooltip div -->
+</div><!-- end vmguest div -->
+      
+    </div>
+
 
 
 
