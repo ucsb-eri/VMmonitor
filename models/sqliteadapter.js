@@ -106,25 +106,47 @@ function SQLiteAdapter(DB) {
     // data display
     //================================================================================
 
-    // this.getGuests = function(host) {
-    //     return this.all('SELECT * FROM guests WHERE host = ? ORDER BY guest', host);
-    // };
 
-    // this.getGuestData = function(guest, host) {
-    //     return this.all('SELECT * FROM guests WHERE guest=? AND host=?', guest, host);
-    // };
+    // helper functions
+    // -------------------------------------------------------------------------------
+    this.getHosts = function() {
+        var adapter = this;
+        return adapter.all('SELECT host FROM hosts ORDER BY host DESC', function(err, rows){
+            // rows:  [ { host: 'z' }, { host: 'a' } ]
+            // transform into hosts: ['a','z']
+            // get list of all hosts, desc because array pop and push later
+            var hosts = [];
+                    
+            for (var i=0; i<rows.length; i++) {
+                hosts.push(rows.pop().host);
+            }
+            // hosts = ['a','b', ... 'z']
+            return hosts;
+        });
+    };
 
-    // this.getHosts = function() {
-    //     return this.all('SELECT * FROM hosts ORDER BY host');
-    // };
+    this.getHostData = function(host) {
+        var adapter = this;
+        return adapter.all('SELECT ds, cpu, fqdn, ctime, mem FROM hosts WHERE host=?', host, function(err, rows) {
+            // rows: [ { ds: '...', cpu: '', fqdn: '', ...}]
 
-    // this.getLatest = function(host) {
-    //     return this.all('SELECT * FROM latest WHERE host = ?', host);
-    // };
+            console.log('stored ', host, ' \'s hostdata');
+            return rows[0];
+        });
+    };
+
+    this.getGuestData = function(host) {
+        var adapter = this;
+        return adapter.all('SELECT guest, ds, ctime, osType, path, cpuTime, memUsed, memMax, cpuUsed, cpuMax, state FROM latest WHERE host=? ORDER BY guest', host, function(err, rows) {
+            // rows: [ { guest: 'chg-ewx', ... etc}, { guest: 'fez', ... }, { guest: '...', ... etc. }]
+            console.log('stored ', host, '\'s guestdata');
+            return rows;
+        });
+    };
+    // -------------------------------------------------------------------------------
 
     // getData should return a Q promise object
     this.getData = function() {
-        // data
         /*{
             'hosts[i]': {
                 'hostdata' : 
@@ -148,36 +170,21 @@ function SQLiteAdapter(DB) {
                                 Services: glider comms
                                 Path: /vm/bouytalk.img}]
             }
-        }*/
-        return this.all('SELECT host FROM hosts ORDER BY host DESC', function(err, rows) {
-                // rows:  [ { host: 'z' }, { host: 'a' } ]
-                // transform into hosts: ['a','z']
-            // get list of all hosts, desc because array pop and push later
-            var hosts = [];
-            
-            for (var i=0; i<rows.length; i++) {
-                hosts.push(rows.pop().host);
-            }
-            // hosts = ['a','b', ... 'z']
-
-            return hosts;
-        }).then(function(hosts) {
+        }*/ //data format
+        return this.getHosts().then(function(hosts) {
             var data = {};
             // for each host, store hostdata and guestdata
             for (var i=0; i<hosts.length; i++) {
                 data[hosts[i]] = {};
-                this.all('SELECT ds, cpu, fqdn, ctime, mem FROM hosts WHERE host=?', hosts[i], function(err, rows) {
-                    // rows: [ { ds: '...', cpu: '', fqdn: '', ...}, { host: 'zippy', ... etc.}]
-                    data[hosts[i]]['hostdata'] = rows[0];
-                    console.log('stored ', hosts[i], ' \'s hostdata');
-
-                    //TODO might add union, select sum for cpuMax and cpuUsed based on state (shutoff or running)
-                    this.all('SELECT guest, ds, ctime, osType, path, cpuTime, memUsed, memMax, cpuUsed, cpuMax, state FROM latest WHERE host=? ORDER BY guest', hosts[i], function(err, rows) {
-                        // rows: [ { guest: 'chg-ewx', ... etc}, { guest: 'fez', ... }, { guest: '...', ... etc. }]
-                        data[hosts[i]]['guestdata'] = rows;
-                        console.log('stored ', hosts[i], '\'s guestdata');
-                    });
+                this.getHostData(hosts[i]).then(function(hostdata) {
+                    data[hosts[i]['hostdata']] = hostdata;
                 });
+
+                this.getGuestData(hosts[i]).then(function(guestdata) {
+                    data[hosts[i]['guestdata']] = guestdata;
+                });
+
+                //TODO might add union, select sum for cpuMax and cpuUsed based on state (shutoff or running)
             }   //end for
             return data;
         });
