@@ -12,6 +12,7 @@ var Q = require('q');
 function SQLiteAdapter(DB) {
     this.db = new sqlite3.Database(DB);
     this.all = Q.nbind(this.db.all, this.db);
+    this.run = Q.nbind(this.db.run, this.db);
 }
 
 (function(){
@@ -44,7 +45,7 @@ function SQLiteAdapter(DB) {
             var dt = new Date(hostdata['generateTime']*1000);
             var datestamp = [dt.getUTCFullYear(), dt.getUTCMonth()+1, dt.getUTCDate()].join('-');
             // save hostdata
-            this.db.run('INSERT OR REPLACE INTO hosts VALUES (?, ?, ?, ?, ?, ?)', 
+            this.run('INSERT OR REPLACE INTO hosts VALUES (?, ?, ?, ?, ?, ?)', 
                 hostdata['host'],
                 datestamp,
                 hostdata['cpuCount'],
@@ -84,8 +85,8 @@ function SQLiteAdapter(DB) {
                 VM['numOfCpu'],             //cpuUsed
                 VM['state']                 //state
             ];
-            this.db.run('INSERT INTO guests VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', res);
-            this.db.run('INSERT OR REPLACE INTO latest VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', res);
+            this.run('INSERT INTO guests VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', res);
+            this.run('INSERT OR REPLACE INTO latest VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', res);
         }
     };
 
@@ -121,6 +122,7 @@ function SQLiteAdapter(DB) {
     //     return this.all('SELECT * FROM latest WHERE host = ?', host);
     // };
 
+    // getData should return a Q promise object
     this.getData = function() {
         // data
         /*{
@@ -147,23 +149,23 @@ function SQLiteAdapter(DB) {
                                 Path: /vm/bouytalk.img}]
             }
         }*/
-        var data = {};
-
-        // get list of all hosts, desc because array pop and push later
-        var hosts = [];
-        this.all('SELECT host FROM hosts ORDER BY host DESC', function(err, rows) {
+        return this.all('SELECT host FROM hosts ORDER BY host DESC', function(err, rows) {
                 // rows:  [ { host: 'z' }, { host: 'a' } ]
                 // transform into hosts: ['a','z']
-            var len = rows.length;
-            for (var i=0; i<len; i++) {
+            // get list of all hosts, desc because array pop and push later
+            var hosts = [];
+            
+            for (var i=0; i<rows.length; i++) {
                 hosts.push(rows.pop().host);
             }
             // hosts = ['a','b', ... 'z']
 
+            return hosts;
+        }).then(function(hosts) {
+            var data = {};
             // for each host, store hostdata and guestdata
-            for (var i=0; i<len; i++) {
+            for (var i=0; i<hosts.length; i++) {
                 data[hosts[i]] = {};
-                // var hostobj = {}; 
                 this.all('SELECT ds, cpu, fqdn, ctime, mem FROM hosts WHERE host=?', hosts[i], function(err, rows) {
                     // rows: [ { ds: '...', cpu: '', fqdn: '', ...}, { host: 'zippy', ... etc.}]
                     data[hosts[i]]['hostdata'] = rows[0];
@@ -178,7 +180,7 @@ function SQLiteAdapter(DB) {
                 });
             }   //end for
             return data;
-        });         // end this.all
+        });
     };
 
 }).call(SQLiteAdapter.prototype);

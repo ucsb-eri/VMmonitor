@@ -17,20 +17,20 @@ var indexLocals = {
 
 // display the page
 router.get('/', function(req, res, next) {
-    indexLocals = display.generateTableElements();
-        // .done(function(elements) {
-        // 	// indexLocals[status] = elements;
-        // 	//TODO
-        //     res.render('index', indexLocals);
-        // });
-	res.render('layout');
+	console.log('rendering index page');
+    display.generateTableElements()
+        .done(function(elements) {
+        	indexLocals[status] = elements;
+        	//TODO
+            res.render('layout', indexLocals);
+        });
 });
 
 // input data
 router.post('/', function(req, res) {
 	res.send();
-	console.log('received data');
-	input.generateDB(req.body).done(console.log('stored data'));
+	console.log('received data', 'calling generateDB');
+	input.generateDB(req.body);
 });
 
 

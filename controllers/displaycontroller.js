@@ -16,15 +16,9 @@ module.exports = {
      * @returns {*}
      */
     generateTableElements: function() {
-        // return adapter.getData()
-        //     .then(function(VMStatus) {
-        //         return factory.processVMStatus(VMStatus);
-        //     });
-
-        // return factory.processData(adapter.getData());
-        console.log('called generateTableElements');
-        return adapter.getData();
-
-    },
-
+        return adapter.getData()
+            .then(function(data) {
+                return factory.processData(data);
+            });
+    }
 };
