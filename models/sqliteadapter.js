@@ -147,42 +147,38 @@ function SQLiteAdapter(DB) {
                                 Path: /vm/bouytalk.img}]
             }
         }*/
-        // this.db.serialize(function() {
-            var data = {};
+        var data = {};
 
-            // get list of all hosts, desc because array pop and push later
-            var hosts = [];
-            this.all('SELECT host FROM hosts ORDER BY host DESC', function(err, rows) {
-                // this.db.serialize(function() {
-                    // rows:  [ { host: 'z' }, { host: 'a' } ]
-                    // transform into hosts: ['a','z']
-                    var len = rows.length;
-                    for (var i=0; i<len; i++) {
-                        hosts.push(rows.pop().host);
-                    }
-                    // hosts = ['a','b', ... 'z']
+        // get list of all hosts, desc because array pop and push later
+        var hosts = [];
+        this.all('SELECT host FROM hosts ORDER BY host DESC', function(err, rows) {
+                // rows:  [ { host: 'z' }, { host: 'a' } ]
+                // transform into hosts: ['a','z']
+            var len = rows.length;
+            for (var i=0; i<len; i++) {
+                hosts.push(rows.pop().host);
+            }
+            // hosts = ['a','b', ... 'z']
 
-                    // for each host, store hostdata and guestdata
-                    for (var i=0; i<len; i++) {
-                        data[hosts[i]] = {};
-                        // var hostobj = {}; 
-                        this.all('SELECT ds, cpu, fqdn, ctime, mem FROM hosts WHERE host=?', hosts[i], function(err, rows) {
-                            // rows: [ { ds: '...', cpu: '', fqdn: '', ...}, { host: 'zippy', ... etc.}]
-                            data[hosts[i]]['hostdata'] = rows[0];
-                            console.log('stored ', hosts[i], ' \'s hostdata');
+            // for each host, store hostdata and guestdata
+            for (var i=0; i<len; i++) {
+                data[hosts[i]] = {};
+                // var hostobj = {}; 
+                this.all('SELECT ds, cpu, fqdn, ctime, mem FROM hosts WHERE host=?', hosts[i], function(err, rows) {
+                    // rows: [ { ds: '...', cpu: '', fqdn: '', ...}, { host: 'zippy', ... etc.}]
+                    data[hosts[i]]['hostdata'] = rows[0];
+                    console.log('stored ', hosts[i], ' \'s hostdata');
 
-                            //TODO might add union, select sum for cpuMax and cpuUsed based on state (shutoff or running)
-
-                        }).all('SELECT guest, ds, ctime, osType, path, cpuTime, memUsed, memMax, cpuUsed, cpuMax, state FROM latest WHERE host=? ORDER BY guest', hosts[i], function(err, rows) {
-                            // rows: [ { guest: 'chg-ewx', ... etc}, { guest: 'fez', ... }, { guest: '...', ... etc. }]
-                            data[hosts[i]]['guestdata'] = rows;
-                            console.log('stored ', hosts[i], '\'s guestdata');
-                        });
-                    }   //end for
-                    return data;
-                // });     // end db.serialize
-            });         // end this.all
-        // });             // end db.serialize
+                    //TODO might add union, select sum for cpuMax and cpuUsed based on state (shutoff or running)
+                    this.all('SELECT guest, ds, ctime, osType, path, cpuTime, memUsed, memMax, cpuUsed, cpuMax, state FROM latest WHERE host=? ORDER BY guest', hosts[i], function(err, rows) {
+                        // rows: [ { guest: 'chg-ewx', ... etc}, { guest: 'fez', ... }, { guest: '...', ... etc. }]
+                        data[hosts[i]]['guestdata'] = rows;
+                        console.log('stored ', hosts[i], '\'s guestdata');
+                    });
+                });
+            }   //end for
+            return data;
+        });         // end this.all
     };
 
 }).call(SQLiteAdapter.prototype);
